@@ -1,0 +1,79 @@
+name: PR Validation
+on:
+  pull_request:
+    types: [opened, edited, synchronize, reopened]
+    branches: [develop, main]
+
+# Patterns generated from tools/project.env
+# To update: edit project.env and re-run setup_repo_automation.sh
+
+jobs:
+  validate-branch-name:
+    name: Branch Name Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate branch name
+        run: |
+          branch="${{ github.head_ref }}"
+          echo "Checking branch name: $branch"
+          PATTERN="^(feature|bugfix|hotfix|refactor|sim|experiment)/[A-Z][A-Z0-9]*-[0-9]+-[a-z0-9-]+$|^release/[0-9]+\.[0-9]+\.[0-9]+$|^experiment/[a-z0-9-]+$"
+          if echo "$branch" | grep -qE "$PATTERN"; then
+            echo "Branch name valid: $branch"
+          else
+            echo "Invalid branch name: $branch"
+            echo "Required format: type/TICKET-ID-description"
+            echo "Allowed types: feature bugfix hotfix refactor sim experiment"
+            exit 1
+          fi
+
+  validate-pr-title:
+    name: PR Title Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR title follows Conventional Commits
+        run: |
+          title="${{ github.event.pull_request.title }}"
+          echo "Checking PR title: $title"
+          PATTERN="^(feat|fix|refactor|test|sim|ci|docs|chore|build)\((arm|amr|humanoid|sim|nav|slam|perception|control|hw|sdk|infra|docs|ci|repo)\): .{1,72}$"
+          if echo "$title" | grep -qE "$PATTERN"; then
+            echo "PR title valid"
+          else
+            echo ""
+            echo "Invalid PR title: $title"
+            echo ""
+            echo "Required format:  type(scope): description"
+            echo "                             ^ space required after colon"
+            echo ""
+            echo "Allowed types:  feat fix refactor test sim ci docs chore build"
+            echo "Allowed scopes: arm amr humanoid sim nav slam perception control hw sdk infra docs ci repo "
+            echo "Max length:     72 characters"
+            echo ""
+            echo "Common mistakes:"
+            echo "  type(scope):missing space    no space after colon"
+            echo "  type: no scope               scope is mandatory"
+            echo "  type(wrong): bad scope       scope not in allowed list"
+            echo ""
+            exit 1
+          fi
+
+  validate-pr-body:
+    name: PR Ticket Reference Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check PR body contains ticket reference
+        run: |
+          body="${{ github.event.pull_request.body }}"
+          if echo "$body" | grep -qiE "(closes|fixes|relates to) #?[A-Z][A-Z0-9]*-[0-9]+"; then
+            echo "Ticket reference found"
+          else
+            echo ""
+            echo "No ticket reference found in PR body"
+            echo ""
+            echo "Add one of these to your PR description:"
+            echo "  Closes #ARM-42   (closes the ticket on merge)"
+            echo "  Fixes #ARM-42    (closes the ticket on merge)"
+            echo "  Relates to ARM-42 (links without closing)"
+            echo ""
+            echo "Ticket ID format: [A-Z][A-Z0-9]*-[0-9]+"
+            exit 1
+          fi

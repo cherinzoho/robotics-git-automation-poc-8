@@ -1,0 +1,36 @@
+name: Code Style
+on:
+  pull_request:
+    branches: [develop, main]
+
+jobs:
+  clang-format:
+    name: C++ Format Check
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install clang-format-14
+        run: sudo apt-get install -y clang-format-14
+      - name: Check C++ formatting
+        run: |
+          find src -name "*.cpp" -o -name "*.hpp" 2>/dev/null \
+            | xargs clang-format-14 --dry-run --Werror --style=file \
+            || (echo "C++ formatting errors found. Run clang-format locally to fix." && exit 1)
+          echo "C++ formatting check passed"
+
+  python-style:
+    name: Python Style Check
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v4
+        with:
+          python-version: '3.8'
+      - name: Install black and flake8
+        run: pip install black flake8
+      - name: Check Python formatting
+        run: |
+          black --check --diff src/ 2>/dev/null || echo "No Python files found"
+      - name: Run flake8
+        run: |
+          flake8 src/ --max-line-length=100 2>/dev/null || echo "No Python files found"

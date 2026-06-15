@@ -1,0 +1,38 @@
+name: Stale Branch Check
+on:
+  schedule:
+    - cron: '0 8 * * 1'   # Every Monday at 8am UTC
+  workflow_dispatch:        # Allow manual trigger from GitHub UI
+
+jobs:
+  find-stale:
+    name: Find branches inactive 60+ days
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Find stale feature and experiment branches
+        run: |
+          git fetch --all --prune
+          echo "Scanning for branches inactive for 60+ days..."
+          # Branch types from tools/project.env: feature,bugfix,hotfix,refactor,sim,experiment
+          found=0
+          for ref in $(git branch -r             | grep -E "origin/(feature|bugfix|hotfix|refactor|sim|experiment)/" \
+            | sed 's/origin\///'); do
+            last=$(git log -1 --format="%ct" "origin/$ref" 2>/dev/null || continue)
+            age=$(( ($(date +%s) - last) / 86400 ))
+            if [ $age -gt 60 ]; then
+              echo "Stale: $ref — inactive for $age days"
+              found=1
+            fi
+          done
+          if [ $found -eq 0 ]; then
+            echo "No stale branches found."
+          else
+            echo ""
+            echo "Action required: Engineering Lead to review and delete stale branches."
+            echo "Command: git push origin --delete <branch-name>"
+          fi
