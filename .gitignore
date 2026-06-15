@@ -49,3 +49,18 @@ qtcreator-*
 
 # Catkin custom files
 CATKIN_IGNORE
+
+# ROS2 bag files — must never be committed
+*.db3
+*.bag
+*.mcap
+
+# Node.js — Git hook dependencies
+node_modules/
+.npm/
+
+# colcon
+compile_commands.json
+
+# Setup audit logs — local only, do not commit
+tools/logs/
