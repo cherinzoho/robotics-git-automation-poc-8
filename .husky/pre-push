@@ -1,0 +1,28 @@
+branch=$(git rev-parse --abbrev-ref HEAD)
+
+# Allow main and develop to push without validation
+if echo "$branch" | grep -qE "^(main|develop)$"; then
+  exit 0
+fi
+
+# Branch types from tools/project.env: feature,bugfix,hotfix,refactor,sim,experiment
+# Ticket ID pattern from tools/project.env: [A-Z][A-Z0-9]*-[0-9]+
+PATTERN="^(feature|bugfix|hotfix|refactor|sim|experiment)\\/[A-Z][A-Z0-9]*-[0-9]+-[a-z0-9-]+$|^release\\/[0-9]+\.[0-9]+\.[0-9]+$|^experiment\\/[a-z0-9-]+$"
+
+if ! echo "$branch" | grep -qE "$PATTERN"; then
+  echo "----------------------------------------------------"
+  echo "ERROR: Branch name '$branch' does not follow convention"
+  echo ""
+  echo "Valid formats:"
+  echo "  feature/ARM-42-short-description"
+  echo "  bugfix/ARM-42-short-description"
+  echo "  release/1.4.0"
+  echo "  experiment/topic-name"
+  echo ""
+  echo "Allowed types: feature bugfix hotfix refactor sim experiment"
+  echo "----------------------------------------------------"
+  exit 1
+fi
+
+echo "Branch name '$branch' is valid"
+exit 0

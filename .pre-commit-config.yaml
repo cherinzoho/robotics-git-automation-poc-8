@@ -1,0 +1,60 @@
+repos:
+  # General file hygiene
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.6.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-merge-conflict
+      - id: check-added-large-files
+        args: ['--maxkb=5120']
+
+  # Block ROS2 bag files and build artefacts
+  - repo: local
+    hooks:
+      - id: block-bag-files
+        name: Block ROS2 bag and database files
+        entry: bash
+        args:
+          - -c
+          - |
+            git diff --cached --name-only | grep -qE "\.(bag|db3|mcap)$" \
+            && echo "ERROR - ROS2 bag files must not be committed" \
+            && exit 1 || exit 0
+        language: system
+        pass_filenames: false
+
+      - id: block-build-artifacts
+        name: Block build artifacts
+        entry: bash
+        args:
+          - -c
+          - |
+            git diff --cached --name-only | grep -qE "^(build|install|log)/" \
+            && echo "ERROR - Build artifacts must not be committed" \
+            && exit 1 || exit 0
+        language: system
+        pass_filenames: false
+
+  # C++ formatting — auto-fixes on commit
+  - repo: https://github.com/pre-commit/mirrors-clang-format
+    rev: v14.0.6
+    hooks:
+      - id: clang-format
+        types_or: [c++, c]
+        args: ['--style=file']
+
+  # Python formatting — auto-fixes on commit
+  - repo: https://github.com/psf/black
+    rev: 23.11.0
+    hooks:
+      - id: black
+        language_version: python3
+
+  # Python linting
+  - repo: https://github.com/PyCQA/flake8
+    rev: 6.1.0
+    hooks:
+      - id: flake8
+        args: ['--max-line-length=100']

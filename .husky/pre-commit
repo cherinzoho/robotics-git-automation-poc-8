@@ -1,0 +1,1 @@
+pre-commit run --color=always --show-diff-on-failure

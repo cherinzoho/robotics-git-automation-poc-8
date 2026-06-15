@@ -1,0 +1,45 @@
+#!/bin/bash
+# commit-msg hook — validates commit message format using commitlint
+# Edit allowed types and scopes in tools/project.env
+
+COMMIT_MSG_FILE="$1"
+COMMIT_MSG=$(cat "$COMMIT_MSG_FILE")
+
+# Run commitlint and capture output
+LINT_OUTPUT=$(npx --no -- commitlint --edit "$COMMIT_MSG_FILE" 2>&1)
+LINT_EXIT=$?
+
+if [[ $LINT_EXIT -ne 0 ]]; then
+  echo ""
+  echo "  ✖  Commit message rejected"
+  echo ""
+  echo "  Your message:"
+  echo "    $COMMIT_MSG"
+  echo ""
+  echo "  commitlint output:"
+  echo "$LINT_OUTPUT" | sed 's/^/    /'
+  echo ""
+  echo "  ─────────────────────────────────────────────────────"
+  echo "  ─────────────────────────────────────────────────────"
+  echo "  Required format:  type(scope): description"
+  echo "                                ^ space required after colon"
+  echo ""
+  echo "  Example:"
+  echo "    feat(arm): add ARM-42 feature description"
+  echo ""
+  echo "  Allowed types:  feat fix refactor test sim ci docs chore build"
+  echo "  Allowed scopes: arm|amr|humanoid|sim|nav|slam|perception|control|hw|sdk|infra|docs|ci|repo"
+  echo "  Max length:     72 characters"
+  echo ""
+  echo "  Common mistakes:"
+  echo "    ✖  feat(arm):missing space    ← no space after colon"
+  echo "    ✖  feat: missing scope                   ← scope is mandatory"
+  echo "    ✖  feat(wrong): bad scope                ← scope not in allowed list"
+  echo "    ✖  Fixed the bug                                  ← no type or scope"
+  echo "    ✔  feat(arm): correct format  ← type(scope): description"
+  echo "  ─────────────────────────────────────────────────────"
+  echo ""
+  exit 1
+fi
+
+exit 0

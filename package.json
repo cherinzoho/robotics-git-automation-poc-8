@@ -1,0 +1,26 @@
+{
+  "name": "robotics-git-automation-poc-8",
+  "version": "1.0.0",
+  "description": "Zoho Robotics — robotics-git-automation-poc-8",
+  "scripts": {
+    "prepare": "husky"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/cherinzoho/robotics-git-automation-poc-8.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/cherinzoho/robotics-git-automation-poc-8/issues"
+  },
+  "homepage": "https://github.com/cherinzoho/robotics-git-automation-poc-8#readme",
+  "private": true,
+  "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
+    "husky": "^9.1.7"
+  }
+}
